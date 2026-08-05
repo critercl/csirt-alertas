@@ -1,0 +1,140 @@
+/* ---- Indicador del panel ---- */
+.csirt-badge {
+    background-color: #d32f2f;
+    color: #ffffff;
+    font-size: 9pt;
+    font-weight: bold;
+    border-radius: 9px;
+    padding: 0 5px;
+    margin-left: 3px;
+    min-width: 14px;
+    text-align: center;
+}
+
+.csirt-icon-alert {
+    color: #ff5252;
+}
+
+/* ---- Encabezado del menú ---- */
+.csirt-header {
+    font-weight: bold;
+    font-size: 10.5pt;
+    padding: 6px 4px 8px 4px;
+}
+
+.csirt-status {
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+    padding: 6px 4px;
+}
+
+/* ---- Barra de filtros por severidad ---- */
+.csirt-filterbar-item {
+    padding: 0 8px 8px 8px;
+}
+
+.csirt-filterbar {
+    spacing: 6px;
+}
+
+.csirt-filter {
+    font-size: 8.5pt;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.75);
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 3px 12px;
+}
+
+.csirt-filter:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Punto/tinte de color por severidad en cada filtro */
+.csirt-filter-default  { border-color: rgba(79, 156, 245, 0.35); }
+.csirt-filter-phishing { border-color: rgba(245, 166, 35, 0.35); }
+.csirt-filter-vuln     { border-color: rgba(239, 108, 59, 0.35); }
+.csirt-filter-malware  { border-color: rgba(229, 72, 77, 0.35); }
+
+/* Filtro activo: relleno con el color de su severidad */
+.csirt-filter-active            { color: #fff; }
+.csirt-filter-all.csirt-filter-active      { background-color: rgba(255,255,255,0.28); }
+.csirt-filter-default.csirt-filter-active  { background-color: rgba(79, 156, 245, 0.85); border-color: transparent; }
+.csirt-filter-phishing.csirt-filter-active { background-color: rgba(245, 166, 35, 0.85); border-color: transparent; }
+.csirt-filter-vuln.csirt-filter-active     { background-color: rgba(239, 108, 59, 0.9);  border-color: transparent; }
+.csirt-filter-malware.csirt-filter-active  { background-color: rgba(229, 72, 77, 0.9);   border-color: transparent; }
+
+/* ---- Tarjeta de alerta ---- */
+.csirt-card {
+    padding: 9px 8px;
+    border-radius: 10px;
+}
+
+.csirt-textcol {
+    spacing: 3px;
+    max-width: 400px;
+}
+
+/* Badge con icono de severidad (20px + padding 9 = 38px) */
+.csirt-icon-badge {
+    padding: 9px;
+    border-radius: 10px;
+    margin-right: 12px;
+    margin-top: 1px;
+}
+
+.csirt-badge-icon {
+    icon-size: 20px;
+}
+
+/* Escala de severidad: informativo -> medio -> alto -> crítico */
+.csirt-tint-default   { background-color: rgba(79, 156, 245, 0.15); }  /* azul informativo */
+.csirt-tint-phishing  { background-color: rgba(245, 166, 35, 0.16); }  /* ámbar   (medio)  */
+.csirt-tint-vuln      { background-color: rgba(239, 108, 59, 0.16); }  /* naranja (alto)   */
+.csirt-tint-malware   { background-color: rgba(229, 72, 77, 0.17); }   /* rojo    (crítico)*/
+
+.csirt-fg-default   { color: #4f9cf5; }
+.csirt-fg-phishing  { color: #f5a623; }
+.csirt-fg-vuln      { color: #ef6c3b; }
+.csirt-fg-malware   { color: #e5484d; }
+
+/* Título */
+.csirt-item-title {
+    font-weight: bold;
+    font-size: 10pt;
+    max-width: 380px;
+}
+
+/* Fila de metadatos: fecha + chips */
+.csirt-meta-row {
+    spacing: 6px;
+    margin-top: 1px;
+}
+
+.csirt-date {
+    font-size: 8pt;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.csirt-chip {
+    font-size: 7.5pt;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.85);
+    background-color: rgba(255, 255, 255, 0.10);
+    border-radius: 6px;
+    padding: 1px 8px;
+}
+
+.csirt-chip-more {
+    color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Resumen */
+.csirt-item-summary {
+    font-size: 9pt;
+    color: rgba(255, 255, 255, 0.72);
+    max-width: 390px;
+    margin-top: 4px;
+}

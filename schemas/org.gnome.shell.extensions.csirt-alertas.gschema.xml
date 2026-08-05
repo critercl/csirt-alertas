@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.csirt-alertas"
+          path="/org/gnome/shell/extensions/csirt-alertas/">
+    <key name="refresh-interval" type="i">
+      <default>15</default>
+      <range min="1" max="1440"/>
+      <summary>Intervalo de actualización</summary>
+      <description>Minutos entre cada consulta del feed RSS del CSIRT.</description>
+    </key>
+    <key name="max-items" type="i">
+      <default>10</default>
+      <range min="1" max="30"/>
+      <summary>Máximo de alertas a mostrar</summary>
+      <description>Cantidad de alertas listadas en el menú.</description>
+    </key>
+    <key name="notify-new" type="b">
+      <default>true</default>
+      <summary>Notificar nuevas alertas</summary>
+      <description>Mostrar una notificación de escritorio cuando aparecen alertas nuevas.</description>
+    </key>
+    <key name="last-seen-guid" type="s">
+      <default>''</default>
+      <summary>GUID de la última alerta vista</summary>
+      <description>Identificador de la alerta más reciente ya vista, para detectar novedades.</description>
+    </key>
+  </schema>
+</schemalist>

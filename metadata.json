@@ -1,0 +1,9 @@
+{
+  "uuid": "csirt-alertas@critercl",
+  "name": "CSIRT Alertas",
+  "description": "Muestra las últimas alertas de ciberseguridad del CSIRT de Chile (csirt.gob.cl) en la barra superior de GNOME y notifica cuando aparecen alertas nuevas. Aplicación Creada Por Anibal Segovia Poblete",
+  "shell-version": ["46", "47", "48","49","50"],
+  "url": "https://csirt.gob.cl/alertas/",
+  "settings-schema": "org.gnome.shell.extensions.csirt-alertas",
+  "version": 4
+}
