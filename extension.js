@@ -1,7 +1,5 @@
-/* CSIRT Alertas - Extensión de GNOME Shell
- * Muestra las últimas alertas de ciberseguridad del CSIRT de Chile.
- * Fuente: https://csirt.gob.cl/rss/alertas
- */
+// SPDX-FileCopyrightText: 2026 Aníbal Segovia Poblete
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 import GObject from 'gi://GObject';
 import St from 'gi://St';
@@ -18,12 +16,9 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const RSS_URL = 'https://csirt.gob.cl/rss/alertas';
 const ALERTS_URL = 'https://csirt.gob.cl/alertas/';
+const NOISE_CATEGORIES = new Set(['Alerta', 'No Caigas']);
 
-// ---------------------------------------------------------------------------
-// Utilidades de parseo del feed RSS
-// ---------------------------------------------------------------------------
-
-function _decodeEntities(text) {
+function decodeEntities(text) {
     if (!text)
         return '';
     return text
@@ -44,7 +39,7 @@ function _decodeEntities(text) {
         .trim();
 }
 
-function _tag(block, name) {
+function tagContent(block, name) {
     const re = new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`, 'i');
     const m = block.match(re);
     return m ? m[1] : '';
@@ -56,16 +51,16 @@ function parseRss(xml) {
     let match;
     while ((match = itemRe.exec(xml)) !== null) {
         const block = match[1];
-        const title = _decodeEntities(_tag(block, 'title'));
-        const link = _decodeEntities(_tag(block, 'link'));
-        const guid = _decodeEntities(_tag(block, 'guid')) || link;
-        const pubDate = _decodeEntities(_tag(block, 'pubDate'));
+        const title = decodeEntities(tagContent(block, 'title'));
+        const link = decodeEntities(tagContent(block, 'link'));
+        const guid = decodeEntities(tagContent(block, 'guid')) || link;
+        const pubDate = decodeEntities(tagContent(block, 'pubDate'));
 
         const categories = [];
         const catRe = /<category[^>]*>([\s\S]*?)<\/category>/gi;
         let cm;
         while ((cm = catRe.exec(block)) !== null) {
-            const c = _decodeEntities(cm[1]);
+            const c = decodeEntities(cm[1]);
             if (c)
                 categories.push(c);
         }
@@ -76,15 +71,13 @@ function parseRss(xml) {
     return items;
 }
 
-// Extrae un resumen legible desde el HTML de la página de la alerta:
-// el primer párrafo relevante, descartando la navegación/redes sociales.
 function extractSummary(html) {
     const skip = /Gobierno de Chile|Twitter|Mastodon|Telegram|verifico|portal principal|Descargar Informe|Sitio\s+oficial/i;
     const re = /<p[^>]*>([\s\S]*?)<\/p>/gi;
     const paras = [];
     let m;
     while ((m = re.exec(html)) !== null) {
-        const t = _decodeEntities(m[1]).replace(/\s+/g, ' ').trim();
+        const t = decodeEntities(m[1]).replace(/\s+/g, ' ').trim();
         if (t.length >= 60 && !skip.test(t))
             paras.push(t);
     }
@@ -98,7 +91,6 @@ function extractSummary(html) {
     return s;
 }
 
-// Elige un icono de ciberseguridad según el tipo de alerta.
 function iconForItem(it) {
     const text = `${it.title} ${it.categories.join(' ')}`.toLowerCase();
     if (/vulnerab|cve|exploit|parche|actualiz/.test(text))
@@ -109,9 +101,6 @@ function iconForItem(it) {
         return {iconName: 'dialog-warning-symbolic', sev: 'phishing'};
     return {iconName: 'security-high-symbolic', sev: 'default'};
 }
-
-// Categorías "de ruido" que no aportan como etiqueta visible.
-const NOISE_CATEGORIES = new Set(['Alerta', 'No Caigas']);
 
 function relativeDate(pubDate) {
     const t = Date.parse(pubDate);
@@ -130,10 +119,6 @@ function relativeDate(pubDate) {
     return new Date(t).toLocaleDateString('es-CL');
 }
 
-// ---------------------------------------------------------------------------
-// Indicador del panel
-// ---------------------------------------------------------------------------
-
 const CsirtIndicator = GObject.registerClass(
 class CsirtIndicator extends PanelMenu.Button {
     _init(extension) {
@@ -150,9 +135,8 @@ class CsirtIndicator extends PanelMenu.Button {
         this._loadSummaryCache();
         this._lastItems = [];
         this._settingsIds = [];
-        this._activeFilter = null; // null = todas; si no, 'default'|'phishing'|'vuln'|'malware'
+        this._activeFilter = null;
 
-        // Icono + contador en la barra superior
         const box = new St.BoxLayout({style_class: 'panel-status-menu-box'});
         this._icon = new St.Icon({
             icon_name: 'security-high-symbolic',
@@ -172,14 +156,11 @@ class CsirtIndicator extends PanelMenu.Button {
         this._loadCachedThenRefresh();
         this._scheduleRefresh();
 
-        // Aplicar cambios de configuración en vivo
         this._settingsIds = [
             this._settings.connect('changed::refresh-interval',
                 () => this._scheduleRefresh()),
             this._settings.connect('changed::max-items',
                 () => this._renderItems(this._lastItems ?? [])),
-            this._settings.connect('changed::notify-new',
-                () => {}), // se lee en tiempo real al notificar
         ];
     }
 
@@ -216,17 +197,13 @@ class CsirtIndicator extends PanelMenu.Button {
         this._itemsSection.addMenuItem(item);
     }
 
-    // -----------------------------------------------------------------------
-    // Barra de filtros por severidad (arriba del listado)
-    // -----------------------------------------------------------------------
-
     _buildFilterBar() {
-        const FILTERS = [
-            {key: null,        label: 'Todas',   sev: 'all'},
-            {key: 'default',   label: 'Info',    sev: 'default'},
-            {key: 'phishing',  label: 'Fraude',  sev: 'phishing'},
-            {key: 'vuln',      label: 'Vuln.',   sev: 'vuln'},
-            {key: 'malware',   label: 'Crítico', sev: 'malware'},
+        const filters = [
+            {key: null, label: 'Todas', sev: 'all'},
+            {key: 'default', label: 'Info', sev: 'default'},
+            {key: 'phishing', label: 'Fraude', sev: 'phishing'},
+            {key: 'vuln', label: 'Vuln.', sev: 'vuln'},
+            {key: 'malware', label: 'Crítico', sev: 'malware'},
         ];
 
         const item = new PopupMenu.PopupBaseMenuItem({
@@ -237,7 +214,7 @@ class CsirtIndicator extends PanelMenu.Button {
         const bar = new St.BoxLayout({style_class: 'csirt-filterbar', x_expand: true});
 
         this._filterButtons = [];
-        for (const f of FILTERS) {
+        for (const f of filters) {
             const btn = new St.Button({
                 label: f.label,
                 style_class: `csirt-filter csirt-filter-${f.sev}`,
@@ -285,8 +262,6 @@ class CsirtIndicator extends PanelMenu.Button {
 
         for (const it of shown) {
             const menuItem = new PopupMenu.PopupBaseMenuItem({style_class: 'csirt-card'});
-
-            // [ badge con icono ]  [ columna de texto ]
             const row = new St.BoxLayout({vertical: false, x_expand: true});
 
             const {iconName, sev} = iconForItem(it);
@@ -315,7 +290,6 @@ class CsirtIndicator extends PanelMenu.Button {
             titleLabel.clutter_text.ellipsize = 0;
             col.add_child(titleLabel);
 
-            // Fila de metadatos: fecha + chips de categoría
             const metaRow = new St.BoxLayout({vertical: false, style_class: 'csirt-meta-row'});
             metaRow.add_child(new St.Label({
                 text: relativeDate(it.pubDate),
@@ -339,7 +313,6 @@ class CsirtIndicator extends PanelMenu.Button {
             }
             col.add_child(metaRow);
 
-            // Resumen de la página, debajo del texto
             const summary = new St.Label({text: '', style_class: 'csirt-item-summary'});
             summary.clutter_text.line_wrap = true;
             summary.clutter_text.ellipsize = 0;
@@ -354,17 +327,12 @@ class CsirtIndicator extends PanelMenu.Button {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Resumen de la página (extraído del HTML, cacheado por GUID)
-    // -----------------------------------------------------------------------
-
     _summaryCacheFile() {
         const dir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'csirt-alertas']);
         GLib.mkdir_with_parents(dir, 0o755);
         return Gio.File.new_for_path(GLib.build_filenamev([dir, 'resumenes.json']));
     }
 
-    // Escritura asíncrona de texto a un archivo (IO no bloqueante).
     _writeAsync(file, text) {
         try {
             const bytes = new GLib.Bytes(new TextEncoder().encode(text));
@@ -375,12 +343,10 @@ class CsirtIndicator extends PanelMenu.Button {
                     try {
                         f.replace_contents_finish(res);
                     } catch (e) {
-                        // caché opcional
                     }
                 }
             );
         } catch (e) {
-            // caché opcional
         }
     }
 
@@ -395,7 +361,6 @@ class CsirtIndicator extends PanelMenu.Button {
                 if (obj && typeof obj === 'object')
                     Object.assign(this._summaryCache, obj);
             } catch (e) {
-                // sin caché o corrupta; se ignora
             }
         });
     }
@@ -433,15 +398,10 @@ class CsirtIndicator extends PanelMenu.Button {
                     label.text = summary;
                     label.visible = true;
                 } catch (e) {
-                    // la etiqueta pudo destruirse al re-renderizar; ignorar
                 }
             }
         );
     }
-
-    // -----------------------------------------------------------------------
-    // Red
-    // -----------------------------------------------------------------------
 
     _refresh() {
         const message = Soup.Message.new('GET', RSS_URL);
@@ -488,7 +448,6 @@ class CsirtIndicator extends PanelMenu.Button {
             return;
 
         const lastSeen = this._settings.get_string('last-seen-guid');
-        // Cantidad de alertas nuevas desde la última vista
         let newCount = 0;
         for (const it of items) {
             if (it.guid === lastSeen)
@@ -496,17 +455,14 @@ class CsirtIndicator extends PanelMenu.Button {
             newCount++;
         }
 
-        if (lastSeen === '') {
-            // Primera ejecución: no notificamos todo el feed, solo marcamos
+        if (lastSeen === '')
             newCount = 0;
-        }
 
         this._updateBadge(newCount);
 
         if (newCount > 0 && this._settings.get_boolean('notify-new'))
             this._notifyNew(items.slice(0, Math.min(newCount, 3)), newCount);
 
-        // Marcar la más reciente como vista
         this._settings.set_string('last-seen-guid', items[0].guid);
     }
 
@@ -523,10 +479,6 @@ class CsirtIndicator extends PanelMenu.Button {
             ? `Alertas CSIRT — ${count} nueva${count === 1 ? '' : 's'}`
             : 'Alertas CSIRT';
     }
-
-    // -----------------------------------------------------------------------
-    // Notificaciones (API GNOME 46+)
-    // -----------------------------------------------------------------------
 
     _ensureSource() {
         if (this._notifSource)
@@ -561,10 +513,6 @@ class CsirtIndicator extends PanelMenu.Button {
         source.addNotification(notification);
     }
 
-    // -----------------------------------------------------------------------
-    // Caché en disco (sobrevive a reinicios de sesión)
-    // -----------------------------------------------------------------------
-
     _cacheFile() {
         const dir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'csirt-alertas']);
         GLib.mkdir_with_parents(dir, 0o755);
@@ -583,19 +531,13 @@ class CsirtIndicator extends PanelMenu.Button {
                 if (!ok)
                     return;
                 const items = JSON.parse(new TextDecoder().decode(contents));
-                // Solo mostramos la caché si la red aún no trajo datos frescos.
                 if (Array.isArray(items) && items.length && this._lastItems.length === 0)
                     this._renderItems(items);
             } catch (e) {
-                // sin caché o corrupta; se ignora
             }
         });
         this._refresh();
     }
-
-    // -----------------------------------------------------------------------
-    // Temporizador
-    // -----------------------------------------------------------------------
 
     _scheduleRefresh() {
         if (this._timeoutId) {
@@ -637,10 +579,6 @@ class CsirtIndicator extends PanelMenu.Button {
         super.destroy();
     }
 });
-
-// ---------------------------------------------------------------------------
-// Extensión
-// ---------------------------------------------------------------------------
 
 export default class CsirtAlertasExtension extends Extension {
     enable() {

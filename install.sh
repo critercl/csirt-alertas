@@ -15,11 +15,6 @@ cp "$SRC/prefs.js"        "$DEST/"
 cp "$SRC/stylesheet.css"  "$DEST/"
 cp "$SRC/schemas/org.gnome.shell.extensions.csirt-alertas.gschema.xml" "$DEST/schemas/"
 
-# Foto del autor (opcional)
-for p in author.jpg author.jpeg author.png; do
-    [ -f "$SRC/$p" ] && cp "$SRC/$p" "$DEST/"
-done
-
 echo "==> Compilando esquema de configuración (GSettings)"
 glib-compile-schemas "$DEST/schemas"
 

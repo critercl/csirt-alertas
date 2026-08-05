@@ -1,7 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Aníbal Segovia Poblete
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
 import Gio from 'gi://Gio';
-import Gdk from 'gi://Gdk';
 
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
@@ -21,7 +23,6 @@ export default class CsirtAlertasPreferences extends ExtensionPreferences {
         });
         page.add(group);
 
-        // Intervalo de actualización
         const intervalRow = new Adw.SpinRow({
             title: 'Intervalo de actualización',
             subtitle: 'Minutos entre cada consulta del feed RSS',
@@ -35,7 +36,6 @@ export default class CsirtAlertasPreferences extends ExtensionPreferences {
         group.add(intervalRow);
         settings.bind('refresh-interval', intervalRow, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-        // Máximo de alertas
         const maxRow = new Adw.SpinRow({
             title: 'Alertas a mostrar',
             subtitle: 'Cantidad de alertas listadas en el menú',
@@ -49,7 +49,6 @@ export default class CsirtAlertasPreferences extends ExtensionPreferences {
         group.add(maxRow);
         settings.bind('max-items', maxRow, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-        // Notificaciones
         const notifyRow = new Adw.SwitchRow({
             title: 'Notificar nuevas alertas',
             subtitle: 'Mostrar una notificación de escritorio cuando aparecen alertas nuevas',
@@ -59,39 +58,22 @@ export default class CsirtAlertasPreferences extends ExtensionPreferences {
 
         const infoGroup = new Adw.PreferencesGroup();
         page.add(infoGroup);
-        const info = new Adw.ActionRow({
+        infoGroup.add(new Adw.ActionRow({
             title: 'Fuente de datos',
             subtitle: 'https://csirt.gob.cl/rss/alertas',
-        });
-        infoGroup.add(info);
+        }));
 
-        // ---------------------------------------------------------------
-        // Página "Acerca de"
-        // ---------------------------------------------------------------
         const about = new Adw.PreferencesPage({
             title: 'Acerca de',
             icon_name: 'dialog-information-symbolic',
         });
         window.add(about);
 
-        // Foto / avatar del autor
         const avatar = new Adw.Avatar({
             size: 96,
             text: 'Aníbal Segovia Poblete',
             show_initials: true,
         });
-        for (const name of ['author.jpg', 'author.jpeg', 'author.png']) {
-            const photo = this.dir.get_child(name);
-            if (photo.query_exists(null)) {
-                try {
-                    avatar.set_custom_image(Gdk.Texture.new_from_file(photo));
-                    break;
-                } catch (e) {
-                    // si falla, se muestran las iniciales
-                }
-            }
-        }
-
         const headerBox = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
             halign: Gtk.Align.CENTER,
@@ -108,7 +90,6 @@ export default class CsirtAlertasPreferences extends ExtensionPreferences {
             label: 'Chile',
             css_classes: ['dim-label'],
         }));
-
         const photoGroup = new Adw.PreferencesGroup();
         photoGroup.add(headerBox);
         about.add(photoGroup);
@@ -126,8 +107,7 @@ export default class CsirtAlertasPreferences extends ExtensionPreferences {
             subtitle: 'critercl@gmail.com',
             activatable: true,
         });
-        const emailIcon = new Gtk.Image({icon_name: 'mail-send-symbolic'});
-        emailRow.add_suffix(emailIcon);
+        emailRow.add_suffix(new Gtk.Image({icon_name: 'mail-send-symbolic'}));
         emailRow.connect('activated', () => {
             Gio.AppInfo.launch_default_for_uri('mailto:critercl@gmail.com', null);
         });
@@ -152,15 +132,15 @@ export default class CsirtAlertasPreferences extends ExtensionPreferences {
 
         const linkGroup = new Adw.PreferencesGroup();
         about.add(linkGroup);
-        const csirtRow = new Adw.ActionRow({
-            title: 'CSIRT Nacional de Chile',
-            subtitle: 'https://csirt.gob.cl',
+        const repoRow = new Adw.ActionRow({
+            title: 'Código fuente',
+            subtitle: 'https://github.com/critercl/csirt-alertas',
             activatable: true,
         });
-        csirtRow.add_suffix(new Gtk.Image({icon_name: 'web-browser-symbolic'}));
-        csirtRow.connect('activated', () => {
-            Gio.AppInfo.launch_default_for_uri('https://csirt.gob.cl', null);
+        repoRow.add_suffix(new Gtk.Image({icon_name: 'web-browser-symbolic'}));
+        repoRow.connect('activated', () => {
+            Gio.AppInfo.launch_default_for_uri('https://github.com/critercl/csirt-alertas', null);
         });
-        linkGroup.add(csirtRow);
+        linkGroup.add(repoRow);
     }
 }
