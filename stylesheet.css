@@ -1,15 +1,22 @@
-/* ---- Indicador del panel ---- */
-.csirt-badge {
-    background-color: #d32f2f;
-    color: #ffffff;
-    font-size: 9pt;
+/* ---- Indicador del panel: contadores segmentados por tipo ---- */
+.csirt-segbox {
+    spacing: 3px;
+    margin-left: 5px;
+}
+
+.csirt-seg {
+    font-size: 8.5pt;
     font-weight: bold;
-    border-radius: 9px;
+    border-radius: 8px;
     padding: 0 5px;
-    margin-left: 3px;
-    min-width: 14px;
+    min-width: 12px;
     text-align: center;
 }
+
+.csirt-seg-default  { color: #4f9cf5; background-color: rgba(79, 156, 245, 0.20); }
+.csirt-seg-phishing { color: #f5a623; background-color: rgba(245, 166, 35, 0.20); }
+.csirt-seg-vuln     { color: #ef6c3b; background-color: rgba(239, 108, 59, 0.20); }
+.csirt-seg-malware  { color: #e5484d; background-color: rgba(229, 72, 77, 0.22); }
 
 .csirt-icon-alert {
     color: #ff5252;

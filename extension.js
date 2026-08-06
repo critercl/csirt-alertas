@@ -142,14 +142,25 @@ class CsirtIndicator extends PanelMenu.Button {
             icon_name: 'security-high-symbolic',
             style_class: 'system-status-icon',
         });
-        this._badge = new St.Label({
-            text: '',
-            y_align: Clutter.ActorAlign.CENTER,
-            style_class: 'csirt-badge',
-            visible: false,
-        });
         box.add_child(this._icon);
-        box.add_child(this._badge);
+
+        // Contadores segmentados por tipo, junto al icono (Info/Fraude/Vuln./Crítico)
+        this._segBox = new St.BoxLayout({
+            style_class: 'csirt-segbox',
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+        this._segLabels = {};
+        for (const sev of ['default', 'phishing', 'vuln', 'malware']) {
+            const lbl = new St.Label({
+                text: '',
+                y_align: Clutter.ActorAlign.CENTER,
+                style_class: `csirt-seg csirt-seg-${sev}`,
+                visible: false,
+            });
+            this._segLabels[sev] = lbl;
+            this._segBox.add_child(lbl);
+        }
+        box.add_child(this._segBox);
         this.add_child(box);
 
         this._buildMenu();
@@ -221,7 +232,7 @@ class CsirtIndicator extends PanelMenu.Button {
                 can_focus: true,
             });
             btn.connect('clicked', () => this._setFilter(f.key));
-            this._filterButtons.push({btn, key: f.key});
+            this._filterButtons.push({btn, key: f.key, label: f.label});
             bar.add_child(btn);
         }
         item.add_child(bar);
@@ -244,8 +255,24 @@ class CsirtIndicator extends PanelMenu.Button {
         }
     }
 
+    // Actualiza cada filtro con la cantidad de alertas de su tipo.
+    _updateFilterCounts() {
+        const items = this._lastItems ?? [];
+        const counts = {default: 0, phishing: 0, vuln: 0, malware: 0};
+        for (const it of items) {
+            const sev = iconForItem(it).sev;
+            if (counts[sev] !== undefined)
+                counts[sev]++;
+        }
+        for (const {btn, key, label} of this._filterButtons ?? []) {
+            const n = key === null ? items.length : (counts[key] ?? 0);
+            btn.label = `${label} ${n}`;
+        }
+    }
+
     _renderItems(items) {
         this._lastItems = items;
+        this._updateFilterCounts();
         this._itemsSection.removeAll();
         const max = this._settings.get_int('max-items');
         const filtered = this._activeFilter
@@ -458,7 +485,7 @@ class CsirtIndicator extends PanelMenu.Button {
         if (lastSeen === '')
             newCount = 0;
 
-        this._updateBadge(newCount);
+        this._updateBadge(items, newCount);
 
         if (newCount > 0 && this._settings.get_boolean('notify-new'))
             this._notifyNew(items.slice(0, Math.min(newCount, 3)), newCount);
@@ -466,17 +493,26 @@ class CsirtIndicator extends PanelMenu.Button {
         this._settings.set_string('last-seen-guid', items[0].guid);
     }
 
-    _updateBadge(count) {
-        if (count > 0) {
-            this._badge.text = count > 99 ? '99+' : String(count);
-            this._badge.visible = true;
-            this._icon.add_style_class_name('csirt-icon-alert');
-        } else {
-            this._badge.visible = false;
-            this._icon.remove_style_class_name('csirt-icon-alert');
+    // Muestra en el panel la segmentación por tipo (misma que los filtros).
+    _updateBadge(items, nuevas) {
+        const counts = {default: 0, phishing: 0, vuln: 0, malware: 0};
+        for (const it of items) {
+            const sev = iconForItem(it).sev;
+            if (counts[sev] !== undefined)
+                counts[sev]++;
         }
-        this._header.label.text = count > 0
-            ? `Alertas CSIRT — ${count} nueva${count === 1 ? '' : 's'}`
+        for (const sev of ['default', 'phishing', 'vuln', 'malware']) {
+            const lbl = this._segLabels[sev];
+            const n = counts[sev];
+            lbl.text = String(n);
+            lbl.visible = n > 0;
+        }
+        if (nuevas > 0)
+            this._icon.add_style_class_name('csirt-icon-alert');
+        else
+            this._icon.remove_style_class_name('csirt-icon-alert');
+        this._header.label.text = nuevas > 0
+            ? `Alertas CSIRT — ${nuevas} nueva${nuevas === 1 ? '' : 's'}`
             : 'Alertas CSIRT';
     }
 
