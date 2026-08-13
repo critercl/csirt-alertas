@@ -144,10 +144,12 @@ Los resúmenes se obtienen de la página de cada alerta y se cachean localmente 
 
 ## 🪟 Versión para Windows
 
+Links de Descarga directa de exe
+https://drive.google.com/drive/folders/1bUy3XkVYi4V3-YAIRGvxBjYe9zrAIl9A?usp=sharing
+
 Existe una app equivalente para Windows (icono en la bandeja, junto al reloj) escrita en Python + PySide6, con el mismo diseño y lógica. Consulta la carpeta [`csirt-alertas-windows`](../csirt-alertas-windows)).
 
--Links de Descarga directa de exe
-https://drive.google.com/drive/folders/1bUy3XkVYi4V3-YAIRGvxBjYe9zrAIl9A?usp=sharing
+
 
 ## 👤 Autor
 
